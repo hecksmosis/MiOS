@@ -7,6 +7,7 @@ pub enum Commands {
     Echo { message: String },
     Prompt { prompt: String },
     Unknown { command: String },
+    Draw,
 }
 
 impl Commands {
@@ -33,6 +34,7 @@ impl Commands {
             "prompt" => Commands::Prompt {
                 prompt: String::from(args),
             },
+            "draw" => Commands::Draw,
             _ => Commands::Unknown {
                 command: context.command_cache.clone(),
             },
@@ -53,6 +55,7 @@ impl Commands {
             Commands::Prompt { prompt } => {
                 context.prompt = String::from(prompt);
             }
+            Commands::Draw => {}
             Commands::Unknown { command } => {
                 println!("Unknown command: {}", command);
             }

@@ -38,7 +38,16 @@ version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96eb12fb69466716fbae9009d389e6a30830ae8975e170eff2d2cff579f9efa3"
 dependencies = [
- "conquer-util",
+ "conquer-util 0.2.0",
+]
+
+[[package]]
+name = "conquer-once"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c6d3a9775a69f6d1fe2cc888999b67ed30257d3da4d2af91984e722f2ec918a"
+dependencies = [
+ "conquer-util 0.3.0",
 ]
 
 [[package]]
@@ -46,6 +55,12 @@ name = "conquer-util"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "654fb2472cc369d311c547103a1fa81d467bef370ae7a0680f65939895b1182a"
+
+[[package]]
+name = "conquer-util"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e763eef8846b13b380f37dfecda401770b0ca4e56e95170237bd7c25c7db3582"
 
 [[package]]
 name = "crossbeam-queue"
@@ -67,6 +82,12 @@ dependencies = [
  "autocfg",
  "cfg-if",
 ]
+
+[[package]]
+name = "font8x8"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "875488b8711a968268c7cf5d139578713097ca4635a76044e8fe8eedf831d07e"
 
 [[package]]
 name = "futures-core"
@@ -131,7 +152,7 @@ name = "mios"
 version = "0.1.0"
 dependencies = [
  "bootloader",
- "conquer-once",
+ "conquer-once 0.2.1",
  "crossbeam-queue",
  "futures-util",
  "lazy_static",
@@ -140,8 +161,18 @@ dependencies = [
  "pic8259",
  "spin",
  "uart_16550",
+ "vga",
  "volatile 0.2.7",
  "x86_64",
+]
+
+[[package]]
+name = "num-traits"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "578ede34cf02f8924ab9447f50c28075b4d3e5b269972345e7e0372b38c6cdcd"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]
@@ -206,6 +237,20 @@ checksum = "b074eb9300ad949edd74c529c0e8d451625af71bb948e6b65fe69f72dc1363d9"
 dependencies = [
  "bitflags",
  "rustversion",
+ "x86_64",
+]
+
+[[package]]
+name = "vga"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02edf18f90e498e0e5e6fa3002da1d670cc8e84d4d6936f399f43a8f72f3062f"
+dependencies = [
+ "bitflags",
+ "conquer-once 0.3.2",
+ "font8x8",
+ "num-traits",
+ "spinning_top",
  "x86_64",
 ]
 

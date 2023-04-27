@@ -3,17 +3,17 @@ pub use chars::*;
 use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
+use vga::colors::{Color16, TextModeColor};
 pub use writer::*;
 
 pub mod chars;
 pub mod writer;
 
 lazy_static! {
-    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
-        column_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    });
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer::new(
+        0,
+        TextModeColor::new(Color16::Yellow, Color16::Black)
+    ));
 }
 
 #[test_case]
@@ -38,8 +38,9 @@ fn test_println_output() {
         let mut writer = WRITER.lock();
         writeln!(writer, "\n{}", s).expect("writeln failed");
         for (i, c) in s.chars().enumerate() {
-            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
-            assert_eq!(char::from(screen_char.ascii_character), c);
+            let screen_char =
+                vga::writers::TextWriter::read_character(&writer.mode, i, BUFFER_HEIGHT - 2);
+            assert_eq!(char::from(screen_char.get_character()), c);
         }
     });
 }
@@ -71,5 +72,6 @@ pub fn _print(args: fmt::Arguments) {
 
     interrupts::without_interrupts(|| {
         WRITER.lock().write_fmt(args).unwrap();
+        WRITER.lock().draw_cursor();
     });
 }

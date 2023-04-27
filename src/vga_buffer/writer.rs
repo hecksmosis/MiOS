@@ -1,5 +1,9 @@
 use crate::vga_buffer::*;
 use core::fmt;
+use vga::{
+    colors::TextModeColor,
+    writers::{ScreenCharacter, Text80x25, TextWriter},
+};
 use volatile::Volatile;
 
 pub const BUFFER_HEIGHT: usize = 25;
@@ -13,11 +17,23 @@ pub struct Buffer {
 
 pub struct Writer {
     pub column_position: usize,
-    pub color_code: ColorCode,
-    pub buffer: &'static mut Buffer,
+    pub color_code: TextModeColor,
+    pub mode: Text80x25,
 }
 
 impl Writer {
+    pub fn new(column_pos: usize, color_code: TextModeColor) -> Writer {
+        let writer = Writer {
+            column_position: column_pos,
+            color_code,
+            mode: Text80x25::new(),
+        };
+
+        writer.mode.set_mode();
+        writer.mode.clear_screen();
+        writer
+    }
+
     pub fn write_byte(&mut self, byte: u8) {
         match byte {
             b'\n' => self.new_line(),
@@ -30,20 +46,23 @@ impl Writer {
                 let col = self.column_position;
 
                 let color_code = self.color_code;
-                self.buffer.chars[row][col].write(ScreenChar {
-                    ascii_character: byte,
-                    color_code,
-                });
+                self.mode
+                    .write_character(col, row, ScreenCharacter::new(byte, color_code));
                 self.column_position += 1;
             }
         }
     }
 
+    pub fn draw_cursor(&mut self) {
+        self.mode
+            .set_cursor_position(self.column_position, BUFFER_HEIGHT - 1);
+    }
+
     fn new_line(&mut self) {
         for row in 1..BUFFER_HEIGHT {
             for col in 0..BUFFER_WIDTH {
-                let character = self.buffer.chars[row][col].read();
-                self.buffer.chars[row - 1][col].write(character);
+                let character = self.mode.read_character(col, row);
+                self.mode.write_character(col, row - 1, character);
             }
         }
         self.clear_row(BUFFER_HEIGHT - 1);
@@ -51,12 +70,9 @@ impl Writer {
     }
 
     fn clear_row(&mut self, row: usize) {
-        let blank = ScreenChar {
-            ascii_character: b' ',
-            color_code: self.color_code,
-        };
+        let blank = ScreenCharacter::new(b' ', self.color_code);
         for col in 0..BUFFER_WIDTH {
-            self.buffer.chars[row][col].write(blank);
+            self.mode.write_character(col, row, blank);
         }
     }
 
@@ -66,6 +82,7 @@ impl Writer {
             self.write_byte(b' ');
             self.column_position -= 1;
         }
+        self.draw_cursor();
     }
 
     pub fn write_string(&mut self, s: &str) {

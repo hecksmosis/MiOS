@@ -8,6 +8,7 @@ use core::{
 use crossbeam_queue::ArrayQueue;
 use futures_util::{task::AtomicWaker, Stream, StreamExt};
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+use vga::vga::VideoMode;
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
@@ -15,6 +16,7 @@ static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 pub struct AppContext {
     pub prompt: String,
     pub command_cache: String,
+    pub mode: VideoMode,
 }
 
 impl AppContext {
@@ -22,6 +24,7 @@ impl AppContext {
         AppContext {
             prompt: String::from("mios> "),
             command_cache: String::new(),
+            mode: VideoMode::Mode80x25,
         }
     }
 }
@@ -83,7 +86,11 @@ pub async fn handle_keyboard() {
     while let Some(scancode) = scancodes.next().await {
         if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
-                handle_key(key, &mut context);
+                match &context.mode {
+                    VideoMode::Mode80x25 => handle_key(key, &mut context),
+                    VideoMode::Mode640x480x16 => {}
+                    _ => {}
+                }
             }
         }
     }
